@@ -1,166 +1,149 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI English – Game Học Anh Văn</title>
-
+<meta charset="UTF-8" />
+<title>AI Sư Phụ Anh Văn</title>
 <style>
 body {
   font-family: Arial, sans-serif;
-  background: #eef1f5;
-  padding: 15px;
+  background: #f2f4f8;
+  padding: 20px;
 }
 .card {
-  background: white;
-  padding: 15px;
+  background: #fff;
   border-radius: 12px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-}
-.level {
-  font-weight: bold;
-  margin-bottom: 10px;
+  padding: 20px;
+  max-width: 600px;
+  margin: auto;
 }
 button {
   width: 100%;
-  padding: 10px;
-  margin-top: 8px;
-  border: none;
-  border-radius: 8px;
-  background: #007bff;
-  color: white;
+  padding: 12px;
+  margin: 8px 0;
   font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
 }
-button:active { background: #0056b3; }
-ul { padding-left: 20px; }
-.badge {
-  margin-top: 5px;
-  font-size: 14px;
-  color: #555;
-}
+.blue { background: #0d6efd; color: #fff; }
+.green { background: #198754; color: #fff; }
+.hidden { display: none; }
 </style>
 </head>
 
 <body>
 
 <div class="card">
-  <div class="level" id="levelInfo"></div>
+  <div id="levelInfo"></div>
+
   <h2 id="sentence"></h2>
 
-  <button onclick="speak()">🔊 Nghe phát âm</button>
-  <button onclick="showDetail()">📘 Giải thích chi tiết</button>
-  <div id="detail"></div>
+  <button class="blue" onclick="speak()">🔊 Nghe phát âm</button>
+  <button class="blue" onclick="toggleDetail()">📘 Giải thích chi tiết</button>
+
+  <div id="detail" class="hidden">
+    <p><b>Phiên âm:</b> <span id="phonetic"></span></p>
+    <p><b>Nghĩa:</b> <span id="meaning"></span></p>
+    <p><b>Ngữ cảnh:</b> <span id="context"></span></p>
+    <p><b>Ví dụ:</b> <span id="example"></span></p>
+    <p><b>Từ vựng:</b></p>
+    <ul id="vocab"></ul>
+  </div>
+
+  <button class="green" onclick="next()">✅ Đã hiểu (nhận EXP)</button>
 </div>
 
 <script>
-// ====== DATA ======
-const lessons = [
-  {
-    level: 1,
-    en: "Hello!",
-    ipa: "/həˈləʊ/",
-    vi: "Xin chào!",
-    context: "Chào hỏi cơ bản.",
-    example: "Hello! Nice to meet you.",
-    vocab: [
-      { word: "Hello", meaning: "xin chào" }
-    ]
-  },
-  {
-    level: 5,
-    en: "How are you?",
-    ipa: "/haʊ ɑː juː/",
-    vi: "Bạn khỏe không?",
-    context: "Chào hỏi xã giao.",
-    example: "How are you today?",
-    vocab: [
-      { word: "How", meaning: "như thế nào" },
-      { word: "are", meaning: "thì hiện tại của to be" },
-      { word: "you", meaning: "bạn" }
-    ]
-  },
-  {
-    level: 12,
-    en: "I am looking for a job.",
-    ipa: "/aɪ æm ˈlʊkɪŋ fɔːr ə dʒɒb/",
-    vi: "Tôi đang tìm việc.",
-    context: "Nói về công việc.",
-    example: "I am looking for a job in the city.",
-    vocab: [
-      { word: "I", meaning: "tôi" },
-      { word: "am", meaning: "to be" },
-      { word: "looking for", meaning: "tìm kiếm" },
-      { word: "job", meaning: "công việc" }
-    ]
-  }
+const levels = [
+  { name: "Tân Thủ", icon: "🪵" },
+  { name: "Đồng", icon: "🥉" },
+  { name: "Bạc", icon: "🥈" },
+  { name: "Vàng", icon: "🥇" }
 ];
 
-// ====== PLAYER ======
 let exp = 0;
-let level = 1;
+let level = 0;
 let index = 0;
 
-// ====== LEVEL NAME (LMHT STYLE) ======
-function rankName(lv) {
-  if (lv <= 5) return "🪵 Tân Thủ";
-  if (lv <= 10) return "🥉 Đồng";
-  if (lv <= 20) return "🥈 Bạc";
-  if (lv <= 30) return "🥇 Vàng";
-  if (lv <= 40) return "💎 Bạch Kim";
-  return "👑 Kim Cương";
+const questions = [
+{
+  sentence: "Hello!",
+  phonetic: "/həˈləʊ/",
+  meaning: "Xin chào!",
+  context: "Chào hỏi cơ bản",
+  example: "Hello! Nice to meet you.",
+  vocab: [{w:"Hello", m:"xin chào"}]
+},
+{
+  sentence: "My name is Duy.",
+  phonetic: "/maɪ neɪm ɪz duːi/",
+  meaning: "Tên tôi là Duy.",
+  context: "Giới thiệu bản thân",
+  example: "My name is Duy. I am from Vietnam.",
+  vocab: [
+    {w:"My", m:"của tôi"},
+    {w:"name", m:"tên"},
+    {w:"is", m:"là"}
+  ]
+},
+{
+  sentence: "Nice to meet you.",
+  phonetic: "/naɪs tuː miːt juː/",
+  meaning: "Rất vui được gặp bạn.",
+  context: "Lịch sự khi gặp lần đầu",
+  example: "Nice to meet you, too.",
+  vocab: [
+    {w:"Nice", m:"vui"},
+    {w:"meet", m:"gặp"},
+    {w:"you", m:"bạn"}
+  ]
 }
+];
 
-// ====== LOAD ======
-function loadLesson() {
-  const available = lessons.filter(l => l.level <= level);
-  index = Math.floor(Math.random() * available.length);
-  document.getElementById("sentence").innerText = available[index].en;
-  document.getElementById("detail").innerHTML = "";
-  document.getElementById("levelInfo").innerText =
-    `Cấp ${level} – ${rankName(level)} | EXP: ${exp}/100`;
-}
+function render() {
+  const q = questions[index];
+  document.getElementById("sentence").innerText = q.sentence;
+  document.getElementById("phonetic").innerText = q.phonetic;
+  document.getElementById("meaning").innerText = q.meaning;
+  document.getElementById("context").innerText = q.context;
+  document.getElementById("example").innerText = q.example;
 
-// ====== DETAIL ======
-function showDetail() {
-  const l = lessons[index];
-  let vocabHTML = "<ul>";
-  l.vocab.forEach(v => {
-    vocabHTML += `<li><b>${v.word}</b>: ${v.meaning}</li>`;
+  const ul = document.getElementById("vocab");
+  ul.innerHTML = "";
+  q.vocab.forEach(v=>{
+    const li = document.createElement("li");
+    li.innerText = `${v.w}: ${v.m}`;
+    ul.appendChild(li);
   });
-  vocabHTML += "</ul>";
 
-  document.getElementById("detail").innerHTML = `
-    <p><b>Phiên âm:</b> ${l.ipa}</p>
-    <p><b>Nghĩa:</b> ${l.vi}</p>
-    <p><b>Ngữ cảnh:</b> ${l.context}</p>
-    <p><b>Ví dụ:</b> ${l.example}</p>
-    <p><b>Từ vựng:</b></p>
-    ${vocabHTML}
-    <button onclick="gainExp()">✅ Đã hiểu (nhận EXP)</button>
-  `;
+  document.getElementById("detail").classList.add("hidden");
+
+  document.getElementById("levelInfo").innerText =
+    `Cấp ${level+1} – ${levels[level].icon} ${levels[level].name} | EXP: ${exp}/100`;
 }
 
-// ====== EXP SYSTEM ======
-function gainExp() {
-  exp += 10;
-  if (exp >= 100) {
-    exp -= 100;
-    level++;
-    alert("🎉 LÊN CẤP! Hiện tại: " + rankName(level));
-  }
-  loadLesson();
-}
-
-// ====== SPEAK ======
 function speak() {
-  const msg = new SpeechSynthesisUtterance(
-    document.getElementById("sentence").innerText
-  );
-  msg.lang = "en-US";
-  speechSynthesis.speak(msg);
+  const utter = new SpeechSynthesisUtterance(questions[index].sentence);
+  utter.lang = "en-US";
+  speechSynthesis.speak(utter);
 }
 
-loadLesson();
+function toggleDetail() {
+  document.getElementById("detail").classList.toggle("hidden");
+}
+
+function next() {
+  exp += 20;
+  if (exp >= 100) {
+    exp = 0;
+    level = Math.min(level + 1, levels.length - 1);
+  }
+  index++;
+  if (index >= questions.length) index = 0;
+  render();
+}
+
+render();
 </script>
 
 </body>
