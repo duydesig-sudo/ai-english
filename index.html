@@ -1,150 +1,111 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8" />
-<title>AI Sư Phụ Anh Văn</title>
+<meta charset="UTF-8">
+<title>AI English – Học như chơi game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body {
-  font-family: Arial, sans-serif;
-  background: #f2f4f8;
-  padding: 20px;
+  margin:0;
+  font-family: system-ui, Arial;
+  background:#0f172a;
+  color:#e5e7eb;
+}
+.container {
+  max-width: 800px;
+  margin:auto;
+  padding:16px;
 }
 .card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  max-width: 600px;
-  margin: auto;
+  background:#020617;
+  border-radius:14px;
+  padding:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
+}
+.level {
+  color:#38bdf8;
+  font-weight:bold;
+  margin-bottom:8px;
+}
+.sentence {
+  font-size:24px;
+  margin:10px 0;
+}
+.small {
+  color:#94a3b8;
+  margin:6px 0;
 }
 button {
-  width: 100%;
-  padding: 12px;
-  margin: 8px 0;
-  font-size: 16px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
+  background:#2563eb;
+  color:white;
+  border:none;
+  border-radius:10px;
+  padding:12px 16px;
+  font-size:16px;
+  cursor:pointer;
+  margin-top:12px;
 }
-.blue { background: #0d6efd; color: #fff; }
-.green { background: #198754; color: #fff; }
-.hidden { display: none; }
+button:active {
+  transform: scale(.97);
+}
+.progress {
+  margin-bottom:12px;
+  color:#a5b4fc;
+}
 </style>
 </head>
 
 <body>
+<div class="container">
+  <div class="card">
+    <div class="progress" id="progress"></div>
+    <div class="level" id="level"></div>
 
-<div class="card">
-  <div id="levelInfo"></div>
+    <div class="sentence" id="sentence"></div>
+    <div class="small"><b>Phiên âm:</b> <span id="ipa"></span></div>
+    <div class="small"><b>Nghĩa:</b> <span id="meaning"></span></div>
+    <div class="small"><b>Ngữ cảnh:</b> <span id="context"></span></div>
+    <div class="small"><b>Ví dụ:</b> <span id="example"></span></div>
+    <div class="small"><b>Từ vựng:</b> <span id="vocab"></span></div>
 
-  <h2 id="sentence"></h2>
-
-  <button class="blue" onclick="speak()">🔊 Nghe phát âm</button>
-  <button class="blue" onclick="toggleDetail()">📘 Giải thích chi tiết</button>
-
-  <div id="detail" class="hidden">
-    <p><b>Phiên âm:</b> <span id="phonetic"></span></p>
-    <p><b>Nghĩa:</b> <span id="meaning"></span></p>
-    <p><b>Ngữ cảnh:</b> <span id="context"></span></p>
-    <p><b>Ví dụ:</b> <span id="example"></span></p>
-    <p><b>Từ vựng:</b></p>
-    <ul id="vocab"></ul>
+    <button onclick="speak()">🔊 Nghe phát âm</button>
+    <button onclick="next()">➡️ Câu tiếp</button>
   </div>
-
-  <button class="green" onclick="next()">✅ Đã hiểu (nhận EXP)</button>
 </div>
 
+<script src="data.js"></script>
 <script>
-const levels = [
-  { name: "Tân Thủ", icon: "🪵" },
-  { name: "Đồng", icon: "🥉" },
-  { name: "Bạc", icon: "🥈" },
-  { name: "Vàng", icon: "🥇" }
-];
-
-let exp = 0;
-let level = 0;
 let index = 0;
 
-const questions = [
-{
-  sentence: "Hello!",
-  phonetic: "/həˈləʊ/",
-  meaning: "Xin chào!",
-  context: "Chào hỏi cơ bản",
-  example: "Hello! Nice to meet you.",
-  vocab: [{w:"Hello", m:"xin chào"}]
-},
-{
-  sentence: "My name is Duy.",
-  phonetic: "/maɪ neɪm ɪz duːi/",
-  meaning: "Tên tôi là Duy.",
-  context: "Giới thiệu bản thân",
-  example: "My name is Duy. I am from Vietnam.",
-  vocab: [
-    {w:"My", m:"của tôi"},
-    {w:"name", m:"tên"},
-    {w:"is", m:"là"}
-  ]
-},
-{
-  sentence: "Nice to meet you.",
-  phonetic: "/naɪs tuː miːt juː/",
-  meaning: "Rất vui được gặp bạn.",
-  context: "Lịch sự khi gặp lần đầu",
-  example: "Nice to meet you, too.",
-  vocab: [
-    {w:"Nice", m:"vui"},
-    {w:"meet", m:"gặp"},
-    {w:"you", m:"bạn"}
-  ]
-}
-];
-
-function render() {
-  const q = questions[index];
+function loadQuestion() {
+  const q = DATA[index];
+  document.getElementById("progress").innerText =
+    `Câu ${index + 1} / ${DATA.length}`;
+  document.getElementById("level").innerText =
+    `Cấp độ: ${q.level}`;
   document.getElementById("sentence").innerText = q.sentence;
-  document.getElementById("phonetic").innerText = q.phonetic;
+  document.getElementById("ipa").innerText = q.ipa;
   document.getElementById("meaning").innerText = q.meaning;
   document.getElementById("context").innerText = q.context;
   document.getElementById("example").innerText = q.example;
-
-  const ul = document.getElementById("vocab");
-  ul.innerHTML = "";
-  q.vocab.forEach(v=>{
-    const li = document.createElement("li");
-    li.innerText = `${v.w}: ${v.m}`;
-    ul.appendChild(li);
-  });
-
-  document.getElementById("detail").classList.add("hidden");
-
-  document.getElementById("levelInfo").innerText =
-    `Cấp ${level+1} – ${levels[level].icon} ${levels[level].name} | EXP: ${exp}/100`;
-}
-
-function speak() {
-  const utter = new SpeechSynthesisUtterance(questions[index].sentence);
-  utter.lang = "en-US";
-  speechSynthesis.speak(utter);
-}
-
-function toggleDetail() {
-  document.getElementById("detail").classList.toggle("hidden");
+  document.getElementById("vocab").innerText =
+    q.vocab.map(v => `${v.word} = ${v.meaning}`).join(", ");
 }
 
 function next() {
-  exp += 20;
-  if (exp >= 100) {
-    exp = 0;
-    level = Math.min(level + 1, levels.length - 1);
-  }
   index++;
-  if (index >= questions.length) index = 0;
-  render();
+  if (index >= DATA.length) index = 0;
+  loadQuestion();
 }
 
-render();
-</script>
+function speak() {
+  const msg = new SpeechSynthesisUtterance(DATA[index].sentence);
+  msg.lang = "en-US";
+  speechSynthesis.speak(msg);
+}
 
+loadQuestion();
+</script>
 </body>
 </html>
+
