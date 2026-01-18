@@ -3,143 +3,164 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>English Master Game</title>
+<title>AI English – Game Học Anh Văn</title>
 
 <style>
-body{
-  margin:0;
-  background:linear-gradient(#111,#000);
-  color:#fff;
-  font-family:Arial;
+body {
+  font-family: Arial, sans-serif;
+  background: #eef1f5;
+  padding: 15px;
 }
-.top{
-  background:#111;
-  padding:12px;
-  display:flex;
-  justify-content:space-between;
-  box-shadow:0 2px 10px #000;
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
 }
-.money{color:#f1c40f;font-size:18px;}
-.game{
-  padding:25px;
-  max-width:520px;
-  margin:auto;
-  text-align:center;
+.level {
+  font-weight: bold;
+  margin-bottom: 10px;
 }
-.question{
-  font-size:22px;
-  margin-bottom:20px;
+button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 8px;
+  background: #007bff;
+  color: white;
+  font-size: 16px;
 }
-.btn{
-  display:block;
-  width:100%;
-  margin:10px 0;
-  padding:14px;
-  font-size:16px;
-  background:#222;
-  color:#fff;
-  border:2px solid #444;
-  border-radius:8px;
-  cursor:pointer;
-}
-.btn:hover{background:#333}
-.correct{background:#27ae60!important}
-.wrong{background:#c0392b!important}
-.explain{
-  margin-top:15px;
-  font-size:15px;
-  color:#ccc;
-}
-.next{
-  margin-top:20px;
-  padding:12px 25px;
-  font-size:16px;
-  background:#f1c40f;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
+button:active { background: #0056b3; }
+ul { padding-left: 20px; }
+.badge {
+  margin-top: 5px;
+  font-size: 14px;
+  color: #555;
 }
 </style>
 </head>
 
 <body>
 
-<div class="top">
-  <div>🎓 English Master</div>
-  <div class="money">💰 <span id="money"></span> xu</div>
-</div>
+<div class="card">
+  <div class="level" id="levelInfo"></div>
+  <h2 id="sentence"></h2>
 
-<div class="game">
-  <div class="question" id="question"></div>
-  <div id="answers"></div>
-  <div class="explain" id="explain"></div>
-  <button class="next" onclick="next()">CÂU TIẾP</button>
+  <button onclick="speak()">🔊 Nghe phát âm</button>
+  <button onclick="showDetail()">📘 Giải thích chi tiết</button>
+  <div id="detail"></div>
 </div>
 
 <script>
-/* ===== KHO CÂU HỎI ===== */
-const questions=[
-{q:"She ___ to school every day.",a:["go","goes","going","gone"],c:1,e:"She là số ít → động từ thêm -s"},
-{q:"I am ___ English now.",a:["study","studying","studied","studies"],c:1,e:"Hiện tại tiếp diễn: am/is/are + V-ing"},
-{q:"He ___ a doctor.",a:["are","is","be","were"],c:1,e:"He là số ít → dùng is"},
-{q:"They ___ football yesterday.",a:["play","plays","played","playing"],c:2,e:"Yesterday → quá khứ đơn"},
-{q:"I have lived here ___ 2015.",a:["since","for","from","during"],c:0,e:"Since dùng cho mốc thời gian"},
-{q:"This bag is ___ than that one.",a:["cheap","cheaper","cheapest","more cheap"],c:1,e:"So sánh hơn của cheap → cheaper"},
-{q:"There ___ many people here.",a:["is","are","be","was"],c:1,e:"Many people → số nhiều"},
-{q:"He can ___ very fast.",a:["run","runs","ran","running"],c:0,e:"Sau can dùng động từ nguyên mẫu"},
-{q:"She speaks English ___ than me.",a:["good","better","best","well"],c:1,e:"So sánh hơn của good/well → better"},
-{q:"What does 'cheap' mean?",a:["Đắt","Rẻ","Nhanh","Chậm"],c:1,e:"Cheap = rẻ"},
-{q:"We ___ TV when it rained.",a:["watch","watched","were watching","are watching"],c:2,e:"Quá khứ tiếp diễn"},
-{q:"She didn’t ___ to school.",a:["go","went","gone","goes"],c:0,e:"Did + not → động từ nguyên mẫu"},
-{q:"I am interested ___ music.",a:["on","in","at","with"],c:1,e:"Interested in + danh từ"},
-{q:"He is ___ than his brother.",a:["tall","taller","tallest","more tall"],c:1,e:"So sánh hơn"},
-{q:"How ___ do you study English?",a:["long","often","much","many"],c:1,e:"How often = hỏi tần suất"}
+// ====== DATA ======
+const lessons = [
+  {
+    level: 1,
+    en: "Hello!",
+    ipa: "/həˈləʊ/",
+    vi: "Xin chào!",
+    context: "Chào hỏi cơ bản.",
+    example: "Hello! Nice to meet you.",
+    vocab: [
+      { word: "Hello", meaning: "xin chào" }
+    ]
+  },
+  {
+    level: 5,
+    en: "How are you?",
+    ipa: "/haʊ ɑː juː/",
+    vi: "Bạn khỏe không?",
+    context: "Chào hỏi xã giao.",
+    example: "How are you today?",
+    vocab: [
+      { word: "How", meaning: "như thế nào" },
+      { word: "are", meaning: "thì hiện tại của to be" },
+      { word: "you", meaning: "bạn" }
+    ]
+  },
+  {
+    level: 12,
+    en: "I am looking for a job.",
+    ipa: "/aɪ æm ˈlʊkɪŋ fɔːr ə dʒɒb/",
+    vi: "Tôi đang tìm việc.",
+    context: "Nói về công việc.",
+    example: "I am looking for a job in the city.",
+    vocab: [
+      { word: "I", meaning: "tôi" },
+      { word: "am", meaning: "to be" },
+      { word: "looking for", meaning: "tìm kiếm" },
+      { word: "job", meaning: "công việc" }
+    ]
+  }
 ];
 
-/* ===== GAME LOGIC ===== */
-let index=Math.floor(Math.random()*questions.length);
-let money=Number(localStorage.getItem("money"))||3000;
-updateMoney();
-load();
+// ====== PLAYER ======
+let exp = 0;
+let level = 1;
+let index = 0;
 
-function load(){
-  const q=questions[index];
-  question.innerText=q.q;
-  answers.innerHTML="";
-  explain.innerText="";
-  q.a.forEach((x,i)=>{
-    const b=document.createElement("button");
-    b.className="btn";
-    b.innerText=x;
-    b.onclick=()=>choose(i,b);
-    answers.appendChild(b);
+// ====== LEVEL NAME (LMHT STYLE) ======
+function rankName(lv) {
+  if (lv <= 5) return "🪵 Tân Thủ";
+  if (lv <= 10) return "🥉 Đồng";
+  if (lv <= 20) return "🥈 Bạc";
+  if (lv <= 30) return "🥇 Vàng";
+  if (lv <= 40) return "💎 Bạch Kim";
+  return "👑 Kim Cương";
+}
+
+// ====== LOAD ======
+function loadLesson() {
+  const available = lessons.filter(l => l.level <= level);
+  index = Math.floor(Math.random() * available.length);
+  document.getElementById("sentence").innerText = available[index].en;
+  document.getElementById("detail").innerHTML = "";
+  document.getElementById("levelInfo").innerText =
+    `Cấp ${level} – ${rankName(level)} | EXP: ${exp}/100`;
+}
+
+// ====== DETAIL ======
+function showDetail() {
+  const l = lessons[index];
+  let vocabHTML = "<ul>";
+  l.vocab.forEach(v => {
+    vocabHTML += `<li><b>${v.word}</b>: ${v.meaning}</li>`;
   });
+  vocabHTML += "</ul>";
+
+  document.getElementById("detail").innerHTML = `
+    <p><b>Phiên âm:</b> ${l.ipa}</p>
+    <p><b>Nghĩa:</b> ${l.vi}</p>
+    <p><b>Ngữ cảnh:</b> ${l.context}</p>
+    <p><b>Ví dụ:</b> ${l.example}</p>
+    <p><b>Từ vựng:</b></p>
+    ${vocabHTML}
+    <button onclick="gainExp()">✅ Đã hiểu (nhận EXP)</button>
+  `;
 }
 
-function choose(i,btn){
-  const q=questions[index];
-  document.querySelectorAll(".btn").forEach(b=>b.disabled=true);
-  if(i===q.c){
-    btn.classList.add("correct");
-    money+=100;
-  }else{
-    btn.classList.add("wrong");
-    money-=50;
-    document.querySelectorAll(".btn")[q.c].classList.add("correct");
+// ====== EXP SYSTEM ======
+function gainExp() {
+  exp += 10;
+  if (exp >= 100) {
+    exp -= 100;
+    level++;
+    alert("🎉 LÊN CẤP! Hiện tại: " + rankName(level));
   }
-  explain.innerText=q.e;
-  updateMoney();
+  loadLesson();
 }
 
-function next(){
-  index=Math.floor(Math.random()*questions.length);
-  load();
+// ====== SPEAK ======
+function speak() {
+  const msg = new SpeechSynthesisUtterance(
+    document.getElementById("sentence").innerText
+  );
+  msg.lang = "en-US";
+  speechSynthesis.speak(msg);
 }
 
-function updateMoney(){
-  localStorage.setItem("money",money);
-  document.getElementById("money").innerText=money;
-}
+loadLesson();
 </script>
 
 </body>
