@@ -3,157 +3,143 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Slot Web Game</title>
+<title>English Master Game</title>
 
 <style>
 body{
   margin:0;
-  background:radial-gradient(circle,#222,#000);
+  background:linear-gradient(#111,#000);
   color:#fff;
   font-family:Arial;
 }
-.topbar{
+.top{
   background:#111;
   padding:12px;
   display:flex;
   justify-content:space-between;
-  align-items:center;
   box-shadow:0 2px 10px #000;
 }
-.balance{
-  font-size:18px;
-  color:#f1c40f;
+.money{color:#f1c40f;font-size:18px;}
+.game{
+  padding:25px;
+  max-width:520px;
+  margin:auto;
+  text-align:center;
 }
-button{
-  padding:12px 22px;
+.question{
+  font-size:22px;
+  margin-bottom:20px;
+}
+.btn{
+  display:block;
+  width:100%;
+  margin:10px 0;
+  padding:14px;
   font-size:16px;
-  border:none;
+  background:#222;
+  color:#fff;
+  border:2px solid #444;
   border-radius:8px;
   cursor:pointer;
 }
-.spin{
-  background:linear-gradient(45deg,#e74c3c,#c0392b);
-  color:#fff;
-  box-shadow:0 0 15px #e74c3c;
+.btn:hover{background:#333}
+.correct{background:#27ae60!important}
+.wrong{background:#c0392b!important}
+.explain{
+  margin-top:15px;
+  font-size:15px;
+  color:#ccc;
 }
-.fakeTopup{
-  background:#27ae60;
-  color:#fff;
-}
-
-.game{
-  text-align:center;
-  padding-top:40px;
-}
-.slot{
-  display:flex;
-  justify-content:center;
-  gap:20px;
-  font-size:70px;
-  margin:25px 0;
-}
-.box{
-  width:90px;
-  height:90px;
-  background:#000;
-  border-radius:12px;
-  border:3px solid #f1c40f;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow:0 0 15px #f1c40f;
-}
-.result{
-  font-size:20px;
-  min-height:28px;
+.next{
+  margin-top:20px;
+  padding:12px 25px;
+  font-size:16px;
+  background:#f1c40f;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
 }
 </style>
 </head>
 
 <body>
 
-<div class="topbar">
-  <div class="balance">💰 <span id="money"></span> xu</div>
-  <button class="fakeTopup" onclick="topup()">NẠP MIỄN PHÍ</button>
+<div class="top">
+  <div>🎓 English Master</div>
+  <div class="money">💰 <span id="money"></span> xu</div>
 </div>
 
 <div class="game">
-  <h1>🎰 SLOT GAME</h1>
-
-  <div class="slot">
-    <div class="box" id="s1">❓</div>
-    <div class="box" id="s2">❓</div>
-    <div class="box" id="s3">❓</div>
-  </div>
-
-  <button class="spin" onclick="spin()">QUAY (-50)</button>
-  <div class="result" id="result"></div>
+  <div class="question" id="question"></div>
+  <div id="answers"></div>
+  <div class="explain" id="explain"></div>
+  <button class="next" onclick="next()">CÂU TIẾP</button>
 </div>
 
-<audio id="spinSound" src="https://assets.mixkit.co/sfx/preview/mixkit-slot-machine-spin-1930.mp3"></audio>
-<audio id="winSound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
-
 <script>
-const icons=["🍒","🍋","⭐","🍉","🔔"];
-let money = Number(localStorage.getItem("money")) || 5000;
+/* ===== KHO CÂU HỎI ===== */
+const questions=[
+{q:"She ___ to school every day.",a:["go","goes","going","gone"],c:1,e:"She là số ít → động từ thêm -s"},
+{q:"I am ___ English now.",a:["study","studying","studied","studies"],c:1,e:"Hiện tại tiếp diễn: am/is/are + V-ing"},
+{q:"He ___ a doctor.",a:["are","is","be","were"],c:1,e:"He là số ít → dùng is"},
+{q:"They ___ football yesterday.",a:["play","plays","played","playing"],c:2,e:"Yesterday → quá khứ đơn"},
+{q:"I have lived here ___ 2015.",a:["since","for","from","during"],c:0,e:"Since dùng cho mốc thời gian"},
+{q:"This bag is ___ than that one.",a:["cheap","cheaper","cheapest","more cheap"],c:1,e:"So sánh hơn của cheap → cheaper"},
+{q:"There ___ many people here.",a:["is","are","be","was"],c:1,e:"Many people → số nhiều"},
+{q:"He can ___ very fast.",a:["run","runs","ran","running"],c:0,e:"Sau can dùng động từ nguyên mẫu"},
+{q:"She speaks English ___ than me.",a:["good","better","best","well"],c:1,e:"So sánh hơn của good/well → better"},
+{q:"What does 'cheap' mean?",a:["Đắt","Rẻ","Nhanh","Chậm"],c:1,e:"Cheap = rẻ"},
+{q:"We ___ TV when it rained.",a:["watch","watched","were watching","are watching"],c:2,e:"Quá khứ tiếp diễn"},
+{q:"She didn’t ___ to school.",a:["go","went","gone","goes"],c:0,e:"Did + not → động từ nguyên mẫu"},
+{q:"I am interested ___ music.",a:["on","in","at","with"],c:1,e:"Interested in + danh từ"},
+{q:"He is ___ than his brother.",a:["tall","taller","tallest","more tall"],c:1,e:"So sánh hơn"},
+{q:"How ___ do you study English?",a:["long","often","much","many"],c:1,e:"How often = hỏi tần suất"}
+];
+
+/* ===== GAME LOGIC ===== */
+let index=Math.floor(Math.random()*questions.length);
+let money=Number(localStorage.getItem("money"))||3000;
 updateMoney();
+load();
 
-function spin(){
-  if(money < 50){
-    result.innerText="💀 Hết tiền!";
-    return;
-  }
-  money -= 50;
-  updateMoney();
-  spinSound.play();
-  result.innerText="Đang quay...";
-
-  let t=0;
-  const roll=setInterval(()=>{
-    s1.innerText=rand();
-    s2.innerText=rand();
-    s3.innerText=rand();
-    t++;
-    if(t>15){
-      clearInterval(roll);
-      cheat();
-    }
-  },80);
+function load(){
+  const q=questions[index];
+  question.innerText=q.q;
+  answers.innerHTML="";
+  explain.innerText="";
+  q.a.forEach((x,i)=>{
+    const b=document.createElement("button");
+    b.className="btn";
+    b.innerText=x;
+    b.onclick=()=>choose(i,b);
+    answers.appendChild(b);
+  });
 }
 
-function cheat(){
-  let r=Math.random();
-  if(r<0.6){
-    s1.innerText="🍒"; s2.innerText="🍒"; s3.innerText=randDiff("🍒");
-    result.innerText="😬 Suýt trúng!";
-  }else if(r<0.9){
-    result.innerText="😅 Trượt!";
-  }else if(r<0.99){
-    win(200,"🙂 Thắng +200");
+function choose(i,btn){
+  const q=questions[index];
+  document.querySelectorAll(".btn").forEach(b=>b.disabled=true);
+  if(i===q.c){
+    btn.classList.add("correct");
+    money+=100;
   }else{
-    win(2000,"💥 JACKPOT +2000");
+    btn.classList.add("wrong");
+    money-=50;
+    document.querySelectorAll(".btn")[q.c].classList.add("correct");
   }
+  explain.innerText=q.e;
+  updateMoney();
 }
 
-function win(x,t){
-  money+=x;
-  updateMoney();
-  winSound.play();
-  result.innerText=t;
-}
-
-function topup(){
-  money+=5000;
-  updateMoney();
-  result.innerText="🎁 Đã nạp 3.000 xu";
+function next(){
+  index=Math.floor(Math.random()*questions.length);
+  load();
 }
 
 function updateMoney(){
   localStorage.setItem("money",money);
   document.getElementById("money").innerText=money;
 }
-function rand(){return icons[Math.floor(Math.random()*icons.length)]}
-function randDiff(x){let r;do{r=rand()}while(r===x);return r}
 </script>
 
 </body>
