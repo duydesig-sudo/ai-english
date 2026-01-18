@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Mini – Learn English Listening</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 420px;
+      margin: auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      font-size: 18px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 10px;
+    }
+    button:active {
+      background: #1e40af;
+    }
+    p {
+      margin-top: 15px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>🎧 English Listening AI Mini</h2>
+
+    <button onclick="playAudio()">▶ Nghe bài mẫu</button>
+
+    <audio id="audio">
+      <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+
+    <p>
+      Hello. This is a basic English listening lesson.  
+      Listen carefully and repeat after the speaker.
+    </p>
+  </div>
+
+  <script>
+    function playAudio() {
+      document.getElementById("audio").play();
+    }
+  </script>
+
+</body>
+</html>
