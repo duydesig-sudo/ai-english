@@ -1,63 +1,110 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>AI Mini – Learn English Listening</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
-      padding: 20px;
-    }
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      max-width: 420px;
-      margin: auto;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-    button {
-      width: 100%;
-      padding: 14px;
-      font-size: 18px;
-      background: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 10px;
-    }
-    button:active {
-      background: #1e40af;
-    }
-    p {
-      margin-top: 15px;
-      font-size: 16px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Sư Phụ – Học Anh Văn IELTS 4.0</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    padding: 15px;
+}
+h1 {
+    text-align: center;
+    color: #2c3e50;
+}
+.lesson {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.listen { background: #3498db; color: white; }
+.speak { background: #2ecc71; color: white; }
+.note {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #555;
+}
+.result {
+    margin-top: 10px;
+    font-weight: bold;
+    color: #27ae60;
+}
+</style>
 </head>
 <body>
 
-  <div class="card">
-    <h2>🎧 English Listening AI Mini</h2>
+<h1>🧑‍🏫 AI Sư Phụ Anh Văn<br>IELTS 4.0</h1>
 
-    <button onclick="playAudio()">▶ Nghe bài mẫu</button>
+<div class="lesson">
+<h2>📘 Bài 1: Giới thiệu bản thân</h2>
 
-    <audio id="audio">
-      <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
-    </audio>
+<p><b>Câu học:</b> <br>My name is Duy.</p>
 
-    <p>
-      Hello. This is a basic English listening lesson.  
-      Listen carefully and repeat after the speaker.
-    </p>
-  </div>
+<button class="listen" onclick="speakEnglish()">
+▶️ Nghe sư phụ đọc
+</button>
 
-  <script>
-    function playAudio() {
-      document.getElementById("audio").play();
+<button class="speak" onclick="startSpeak()">
+🎤 Con nói theo
+</button>
+
+<div class="note">
+<b>Sư phụ giảng:</b><br>
+“My name is Duy” nghĩa là: <br>
+👉 Tên của tôi là Duy.<br><br>
+- My = của tôi<br>
+- name = tên<br>
+- is = là<br><br>
+Con nghe cho quen tai, không vội nói nhanh.
+</div>
+
+<div id="result" class="result"></div>
+</div>
+
+<script>
+function speakEnglish() {
+    let text = "My name is Duy.";
+    let utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.rate = 0.8;
+    speechSynthesis.speak(utterance);
+}
+
+function startSpeak() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Điện thoại của con chưa hỗ trợ nói. Hãy dùng Chrome.");
+        return;
     }
-  </script>
+
+    let recognition = new webkitSpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.start();
+
+    recognition.onresult = function(event) {
+        let said = event.results[0][0].transcript;
+        document.getElementById("result").innerText =
+            "Sư phụ nghe con nói: \"" + said + "\"";
+    }
+
+    recognition.onerror = function() {
+        alert("Con nói chưa rõ. Đừng sợ, nói lại.");
+    }
+}
+</script>
 
 </body>
-</html>
+  </html>
+  
