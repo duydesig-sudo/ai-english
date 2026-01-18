@@ -3,108 +3,146 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Sư Phụ – Học Anh Văn IELTS 4.0</title>
+<title>Slot Như Thật</title>
+
 <style>
 body {
-    font-family: Arial, sans-serif;
-    background: #f4f6f8;
-    padding: 15px;
+  background:#111;
+  color:#fff;
+  font-family: Arial, sans-serif;
+  text-align:center;
+  padding-top:30px;
 }
-h1 {
-    text-align: center;
-    color: #2c3e50;
+
+h1 { color:#f1c40f; }
+
+.money {
+  font-size:20px;
+  margin-bottom:15px;
 }
-.lesson {
-    background: white;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+
+.slot {
+  display:flex;
+  justify-content:center;
+  gap:15px;
+  font-size:60px;
+  margin-bottom:20px;
 }
+
+.box {
+  width:80px;
+  height:80px;
+  border:3px solid #f1c40f;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#000;
+}
+
 button {
-    width: 100%;
-    padding: 12px;
-    margin-top: 10px;
-    font-size: 16px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
+  padding:15px 35px;
+  font-size:18px;
+  background:#e74c3c;
+  color:white;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
 }
-.listen { background: #3498db; color: white; }
-.speak { background: #2ecc71; color: white; }
-.note {
-    margin-top: 10px;
-    font-size: 14px;
-    color: #555;
+
+button:disabled {
+  background:#555;
 }
+
 .result {
-    margin-top: 10px;
-    font-weight: bold;
-    color: #27ae60;
+  margin-top:15px;
+  font-size:20px;
 }
 </style>
 </head>
+
 <body>
 
-<h1>🧑‍🏫 AI Sư Phụ Anh Văn<br>IELTS 4.0</h1>
+<h1>🎰 SLOT NHƯ THẬT</h1>
 
-<div class="lesson">
-<h2>📘 Bài 1: Giới thiệu bản thân</h2>
-
-<p><b>Câu học:</b> <br>My name is Duy.</p>
-
-<button class="listen" onclick="speakEnglish()">
-▶️ Nghe sư phụ đọc
-</button>
-
-<button class="speak" onclick="startSpeak()">
-🎤 Con nói theo
-</button>
-
-<div class="note">
-<b>Sư phụ giảng:</b><br>
-“My name is Duy” nghĩa là: <br>
-👉 Tên của tôi là Duy.<br><br>
-- My = của tôi<br>
-- name = tên<br>
-- is = là<br><br>
-Con nghe cho quen tai, không vội nói nhanh.
+<div class="money">
+💰 Tiền: <span id="money">0</span> xu
 </div>
 
-<div id="result" class="result"></div>
+<div class="slot">
+  <div class="box" id="s1">❓</div>
+  <div class="box" id="s2">❓</div>
+  <div class="box" id="s3">❓</div>
 </div>
+
+<button id="spinBtn" onclick="spin()">QUAY (-10)</button>
+
+<div class="result" id="result"></div>
+
+<!-- Âm thanh -->
+<audio id="spinSound" src="https://assets.mixkit.co/sfx/preview/mixkit-slot-machine-spin-1930.mp3"></audio>
+<audio id="winSound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
 
 <script>
-function speakEnglish() {
-    let text = "My name is Duy.";
-    let utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "en-US";
-    utterance.rate = 0.8;
-    speechSynthesis.speak(utterance);
+const icons = ["🍒","🍋","⭐","🍉","🔔"];
+let money = Number(localStorage.getItem("money")) || 100;
+
+const moneyEl = document.getElementById("money");
+const resultEl = document.getElementById("result");
+const spinBtn = document.getElementById("spinBtn");
+
+moneyEl.innerText = money;
+
+function rand() {
+  return icons[Math.floor(Math.random()*icons.length)];
 }
 
-function startSpeak() {
-    if (!('webkitSpeechRecognition' in window)) {
-        alert("Điện thoại của con chưa hỗ trợ nói. Hãy dùng Chrome.");
-        return;
-    }
+function spin() {
+  if (money < 10) {
+    resultEl.innerText = "💀 Hết tiền!";
+    spinBtn.disabled = true;
+    return;
+  }
 
-    let recognition = new webkitSpeechRecognition();
-    recognition.lang = "en-US";
-    recognition.start();
+  money -= 10;
+  localStorage.setItem("money", money);
+  moneyEl.innerText = money;
 
-    recognition.onresult = function(event) {
-        let said = event.results[0][0].transcript;
-        document.getElementById("result").innerText =
-            "Sư phụ nghe con nói: \"" + said + "\"";
-    }
+  spinBtn.disabled = true;
+  resultEl.innerText = "Đang quay...";
+  document.getElementById("spinSound").play();
 
-    recognition.onerror = function() {
-        alert("Con nói chưa rõ. Đừng sợ, nói lại.");
+  let count = 0;
+  const interval = setInterval(() => {
+    document.getElementById("s1").innerText = rand();
+    document.getElementById("s2").innerText = rand();
+    document.getElementById("s3").innerText = rand();
+    count++;
+    if (count > 10) {
+      clearInterval(interval);
+      checkResult();
+      spinBtn.disabled = false;
     }
+  }, 100);
+}
+
+function checkResult() {
+  const a = s1.innerText;
+  const b = s2.innerText;
+  const c = s3.innerText;
+
+  if (a === b && b === c) {
+    let win = 50;
+    money += win;
+    localStorage.setItem("money", money);
+    moneyEl.innerText = money;
+    resultEl.innerText = "🎉 TRÚNG LỚN +"+win;
+    document.getElementById("winSound").play();
+  } else {
+    resultEl.innerText = "😅 Trượt!";
+  }
 }
 </script>
 
 </body>
-  </html>
-  
+</html>
