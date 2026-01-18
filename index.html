@@ -3,145 +3,157 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Slot Như Thật</title>
+<title>Slot Web Game</title>
 
 <style>
-body {
-  background:#111;
+body{
+  margin:0;
+  background:radial-gradient(circle,#222,#000);
   color:#fff;
-  font-family: Arial, sans-serif;
+  font-family:Arial;
+}
+.topbar{
+  background:#111;
+  padding:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  box-shadow:0 2px 10px #000;
+}
+.balance{
+  font-size:18px;
+  color:#f1c40f;
+}
+button{
+  padding:12px 22px;
+  font-size:16px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+.spin{
+  background:linear-gradient(45deg,#e74c3c,#c0392b);
+  color:#fff;
+  box-shadow:0 0 15px #e74c3c;
+}
+.fakeTopup{
+  background:#27ae60;
+  color:#fff;
+}
+
+.game{
   text-align:center;
-  padding-top:30px;
+  padding-top:40px;
 }
-
-h1 { color:#f1c40f; }
-
-.money {
-  font-size:20px;
-  margin-bottom:15px;
-}
-
-.slot {
+.slot{
   display:flex;
   justify-content:center;
-  gap:15px;
-  font-size:60px;
-  margin-bottom:20px;
+  gap:20px;
+  font-size:70px;
+  margin:25px 0;
 }
-
-.box {
-  width:80px;
-  height:80px;
+.box{
+  width:90px;
+  height:90px;
+  background:#000;
+  border-radius:12px;
   border:3px solid #f1c40f;
-  border-radius:10px;
   display:flex;
   align-items:center;
   justify-content:center;
-  background:#000;
+  box-shadow:0 0 15px #f1c40f;
 }
-
-button {
-  padding:15px 35px;
-  font-size:18px;
-  background:#e74c3c;
-  color:white;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-}
-
-button:disabled {
-  background:#555;
-}
-
-.result {
-  margin-top:15px;
+.result{
   font-size:20px;
+  min-height:28px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🎰 SLOT NHƯ THẬT</h1>
-
-<div class="money">
-💰 Tiền: <span id="money">0</span> xu
+<div class="topbar">
+  <div class="balance">💰 <span id="money"></span> xu</div>
+  <button class="fakeTopup" onclick="topup()">NẠP MIỄN PHÍ</button>
 </div>
 
-<div class="slot">
-  <div class="box" id="s1">❓</div>
-  <div class="box" id="s2">❓</div>
-  <div class="box" id="s3">❓</div>
+<div class="game">
+  <h1>🎰 SLOT GAME</h1>
+
+  <div class="slot">
+    <div class="box" id="s1">❓</div>
+    <div class="box" id="s2">❓</div>
+    <div class="box" id="s3">❓</div>
+  </div>
+
+  <button class="spin" onclick="spin()">QUAY (-50)</button>
+  <div class="result" id="result"></div>
 </div>
 
-<button id="spinBtn" onclick="spin()">QUAY (-10)</button>
-
-<div class="result" id="result"></div>
-
-<!-- Âm thanh -->
 <audio id="spinSound" src="https://assets.mixkit.co/sfx/preview/mixkit-slot-machine-spin-1930.mp3"></audio>
 <audio id="winSound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
 
 <script>
-const icons = ["🍒","🍋","⭐","🍉","🔔"];
-let money = Number(localStorage.getItem("money")) || 100;
+const icons=["🍒","🍋","⭐","🍉","🔔"];
+let money = Number(localStorage.getItem("money")) || 5000;
+updateMoney();
 
-const moneyEl = document.getElementById("money");
-const resultEl = document.getElementById("result");
-const spinBtn = document.getElementById("spinBtn");
-
-moneyEl.innerText = money;
-
-function rand() {
-  return icons[Math.floor(Math.random()*icons.length)];
-}
-
-function spin() {
-  if (money < 10) {
-    resultEl.innerText = "💀 Hết tiền!";
-    spinBtn.disabled = true;
+function spin(){
+  if(money < 50){
+    result.innerText="💀 Hết tiền!";
     return;
   }
+  money -= 50;
+  updateMoney();
+  spinSound.play();
+  result.innerText="Đang quay...";
 
-  money -= 10;
-  localStorage.setItem("money", money);
-  moneyEl.innerText = money;
-
-  spinBtn.disabled = true;
-  resultEl.innerText = "Đang quay...";
-  document.getElementById("spinSound").play();
-
-  let count = 0;
-  const interval = setInterval(() => {
-    document.getElementById("s1").innerText = rand();
-    document.getElementById("s2").innerText = rand();
-    document.getElementById("s3").innerText = rand();
-    count++;
-    if (count > 10) {
-      clearInterval(interval);
-      checkResult();
-      spinBtn.disabled = false;
+  let t=0;
+  const roll=setInterval(()=>{
+    s1.innerText=rand();
+    s2.innerText=rand();
+    s3.innerText=rand();
+    t++;
+    if(t>15){
+      clearInterval(roll);
+      cheat();
     }
-  }, 100);
+  },80);
 }
 
-function checkResult() {
-  const a = s1.innerText;
-  const b = s2.innerText;
-  const c = s3.innerText;
-
-  if (a === b && b === c) {
-    let win = 50;
-    money += win;
-    localStorage.setItem("money", money);
-    moneyEl.innerText = money;
-    resultEl.innerText = "🎉 TRÚNG LỚN +"+win;
-    document.getElementById("winSound").play();
-  } else {
-    resultEl.innerText = "😅 Trượt!";
+function cheat(){
+  let r=Math.random();
+  if(r<0.6){
+    s1.innerText="🍒"; s2.innerText="🍒"; s3.innerText=randDiff("🍒");
+    result.innerText="😬 Suýt trúng!";
+  }else if(r<0.9){
+    result.innerText="😅 Trượt!";
+  }else if(r<0.99){
+    win(200,"🙂 Thắng +200");
+  }else{
+    win(2000,"💥 JACKPOT +2000");
   }
 }
+
+function win(x,t){
+  money+=x;
+  updateMoney();
+  winSound.play();
+  result.innerText=t;
+}
+
+function topup(){
+  money+=3000;
+  updateMoney();
+  result.innerText="🎁 Đã nạp 3.000 xu";
+}
+
+function updateMoney(){
+  localStorage.setItem("money",money);
+  document.getElementById("money").innerText=money;
+}
+function rand(){return icons[Math.floor(Math.random()*icons.length)]}
+function randDiff(x){let r;do{r=rand()}while(r===x);return r}
 </script>
 
 </body>
